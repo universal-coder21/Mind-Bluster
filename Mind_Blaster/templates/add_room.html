@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Room - Dormitory Management System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Add New Room</h2>
+            <div class="ml-auto">
+                <a href="{{ url_for('view_rooms') }}" class="flex items-center text-blue-600 hover:text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Rooms
+                </a>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('add_room') }}" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="room_number" class="block text-sm font-medium text-gray-700">Room Number <span class="text-red-500">*</span></label>
+                    <input type="text" id="room_number" name="room_number" 
+                           class="block w-full px-4 py-2 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           required placeholder="e.g., A101">
+                    <p class="text-xs text-gray-500">Enter a unique room identifier</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="building" class="block text-sm font-medium text-gray-700">Building <span class="text-red-500">*</span></label>
+                    <select id="building" name="building" 
+                            class="block w-full px-4 py-2 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required>
+                        <option value="">Select Building</option>
+                        <option value="North Hall">North Hall</option>
+                        <option value="South Hall">South Hall</option>
+                        <option value="East Hall">East Hall</option>
+                        <option value="West Hall">West Hall</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="floor" class="block text-sm font-medium text-gray-700">Floor <span class="text-red-500">*</span></label>
+                    <input type="number" id="floor" name="floor" min="1" max="20" value="1"
+                           class="block w-full px-4 py-2 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           required>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="capacity" class="block text-sm font-medium text-gray-700">Capacity <span class="text-red-500">*</span></label>
+                    <div class="flex">
+                        <button type="button" onclick="decrementCapacity()" 
+                                class="px-3 py-2 bg-gray-200 rounded-l-md border border-gray-300 hover:bg-gray-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                            </svg>
+                        </button>
+                        <input type="number" id="capacity" name="capacity" min="1" max="8" value="2"
+                               class="w-full text-center border-y border-gray-300 focus:outline-none focus:ring-0" 
+                               required>
+                        <button type="button" onclick="incrementCapacity()" 
+                                class="px-3 py-2 bg-gray-200 rounded-r-md border border-gray-300 hover:bg-gray-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="room_type" class="block text-sm font-medium text-gray-700">Room Type</label>
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex items-center">
+                        <input type="radio" id="standard" name="room_type" value="standard" checked
+                               class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <label for="standard" class="ml-2 text-sm text-gray-700">Standard</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="suite" name="room_type" value="suite"
+                               class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <label for="suite" class="ml-2 text-sm text-gray-700">Suite</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="radio" id="accessible" name="room_type" value="accessible"
+                               class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <label for="accessible" class="ml-2 text-sm text-gray-700">Accessible</label>
+                    </div>
+                </div>
+            </div>
+
+           <!-- <div class="space-y-2">
+                <label for="amenities" class="block text-sm font-medium text-gray-700">Amenities</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="ac" name="amenities" value="ac"
+                               class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <label for="ac" class="ml-2 text-sm text-gray-700">Air Conditioning</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="private_bath" name="amenities" value="private_bath"
+                               class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <label for="private_bath" class="ml-2 text-sm text-gray-700">Private Bathroom</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="kitchen" name="amenities" value="kitchen"
+                               class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                        <label for="kitchen" class="ml-2 text-sm text-gray-700">Kitchen</label>
+                    </div>
+                </div>
+            </div> -->
+
+            <div class="pt-4 flex justify-end space-x-3">
+                <button type="reset" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Clear Form
+                </button>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Add Room
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function incrementCapacity() {
+        const input = document.getElementById('capacity');
+        const currentValue = parseInt(input.value) || 1;
+        if (currentValue < parseInt(input.max)) {
+            input.value = currentValue + 1;
+        }
+    }
+
+    function decrementCapacity() {
+        const input = document.getElementById('capacity');
+        const currentValue = parseInt(input.value) || 2;
+        if (currentValue > parseInt(input.min)) {
+            input.value = currentValue - 1;
+        }
+    }
+</script>
+{% endblock %}

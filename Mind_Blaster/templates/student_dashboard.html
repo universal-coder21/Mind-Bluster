@@ -1,0 +1,228 @@
+{% extends "layout.html" %}
+
+{% block title %}Student Dashboard -Mind Blaster System{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <h2 class="text-2xl font-bold mb-6">Student Dashboard</h2>
+  
+  <!-- Welcome & Room Info -->
+  <section class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-xl font-semibold mb-4">Welcome, {{ user.full_name }}</h3>
+    
+    <div class="mb-3">
+      <h4 class="text-lg font-medium mb-2">Your Room Information</h4>
+      {% if user.room %}
+        <div class="bg-blue-50 p-4 rounded">
+          <p class="mb-1"><span class="font-medium">Room Number:</span> {{ user.room.room_number }}</p>
+          <p class="mb-1"><span class="font-medium">Building:</span> {{ user.room.building }}</p>
+          <p><span class="font-medium">Floor:</span> {{ user.room.floor }}</p>
+        </div>
+      {% else %}
+        <p class="mb-2">You are not assigned to a room yet.</p>
+        <a href="{{ url_for('view_rooms') }}" class="text-blue-600 hover:text-blue-800">Request a Room</a>
+      {% endif %}
+    </div>
+  </section>
+  
+  <!-- Main Grid Layout -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Notices -->
+    <section class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-medium mb-4">Recent Notices</h3>
+      {% if notices %}
+        <ul class="divide-y divide-gray-200">
+          {% for notice in notices %}
+            <li class="py-3">
+              <h4 class="font-medium">{{ notice.title }}</h4>
+              <p class="text-sm text-gray-500">Posted on: {{ notice.post_date.strftime('%Y-%m-%d') }}</p>
+              <p class="mt-1">{{ notice.content[:100] }}{% if notice.content|length > 100 %}...{% endif %}</p>
+            </li>
+          {% endfor %}
+        </ul>
+        <a href="{{ url_for('view_notices') }}" class="block mt-4 text-blue-600 hover:text-blue-800">View All Notices</a>
+      {% else %}
+        <p>No recent notices.</p>
+      {% endif %}
+    </section>
+  
+    <!-- Complaints -->
+    <section class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-medium mb-4">Your Recent Complaints</h3>
+      {% if complaints %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for complaint in complaints %}
+                <tr>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" class="text-blue-600 hover:text-blue-800">
+                      {{ complaint.title }}
+                    </a>
+                  </td>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ complaint.submission_date.strftime('%Y-%m-%d') }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      {% if complaint.status == 'Resolved' %}bg-green-100 text-green-800
+                      {% elif complaint.status == 'Under Review' %}bg-yellow-100 text-yellow-800
+                      {% else %}bg-gray-100 text-gray-800{% endif %}">
+                      {{ complaint.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <a href="{{ url_for('view_complaints') }}" class="text-blue-600 hover:text-blue-800">View All Complaints</a>
+          <a href="{{ url_for('new_complaint') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+            Submit New Complaint
+          </a>
+        </div>
+      {% else %}
+        <p class="mb-4">No complaints submitted.</p>
+        <a href="{{ url_for('new_complaint') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+          Submit New Complaint
+        </a>
+      {% endif %}
+    </section>
+  
+    <!-- Maintenance Requests -->
+    <section class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-medium mb-4">Your Maintenance Requests</h3>
+      {% if maintenance_requests %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue Type</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for request in maintenance_requests %}
+                <tr>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ request.issue_type }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ request.submission_date.strftime('%Y-%m-%d') }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      {% if request.status == 'Completed' %}bg-green-100 text-green-800
+                      {% elif request.status == 'Scheduled' %}bg-blue-100 text-blue-800
+                      {% else %}bg-gray-100 text-gray-800{% endif %}">
+                      {{ request.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <a href="{{ url_for('view_maintenance') }}" class="text-blue-600 hover:text-blue-800">View All Requests</a>
+          <a href="{{ url_for('new_maintenance') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+            Submit New Request
+          </a>
+        </div>
+      {% else %}
+        <p class="mb-4">No maintenance requests submitted.</p>
+        <a href="{{ url_for('new_maintenance') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+          Submit New Maintenance Request
+        </a>
+      {% endif %}
+    </section>
+  
+    <!-- Room Requests -->
+    <section class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-medium mb-4">Your Recent Room Requests</h3>
+      {% if room_requests %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room Number</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for request in room_requests %}
+                <tr>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ request.room.room_number }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ request.request_date.strftime('%Y-%m-%d') }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      {% if request.status == 'Approved' %}bg-green-100 text-green-800
+                      {% elif request.status == 'Pending' %}bg-yellow-100 text-yellow-800
+                      {% elif request.status == 'Denied' %}bg-red-100 text-red-800
+                      {% else %}bg-gray-100 text-gray-800{% endif %}">
+                      {{ request.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No room requests submitted.</p>
+      {% endif %}
+    </section>
+  
+    <!-- Visitors -->
+    <!--<section class="bg-white rounded-lg shadow p-6 md:col-span-2">
+      <h3 class="text-lg font-medium mb-4">Your Visitors</h3>
+      {% if visitors %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visitor Name</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out</th>
+                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for visitor in visitors %}
+                <tr>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ visitor.visitor_name }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">{{ visitor.check_in.strftime('%Y-%m-%d %H:%M') }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    {{ visitor.check_out.strftime('%Y-%m-%d %H:%M') if visitor.check_out else 'Not checked out' }}
+                  </td>
+                  <td class="px-3 py-2 whitespace-nowrap">
+                    {% if not visitor.check_out %}
+                      <a href="{{ url_for('checkout_visitor', visitor_id=visitor.id) }}" 
+                         class="text-blue-600 hover:text-blue-800">Check-out</a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <a href="{{ url_for('view_visitors') }}" class="text-blue-600 hover:text-blue-800">View All Visitors</a>
+          <a href="{{ url_for('new_visitor') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+            Log New Visitor
+          </a>
+        </div>
+      {% else %}
+        <p class="mb-4">No visitors logged.</p>
+        <a href="{{ url_for('new_visitor') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+          Log New Visitor
+        </a>
+      {% endif %}
+    </section>  -->
+  </div>
+</div>
+{% endblock %}

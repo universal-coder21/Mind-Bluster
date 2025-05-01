@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User - Mind Blaster System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #8338ec;
+            --success-color: #38b000;
+            --warning-color: #ffbe0b;
+            --danger-color: #ff006e;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .sidebar {
+            background-color: #ffffff;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            height: calc(100vh - 56px);
+            position: fixed;
+            top: 56px;
+            left: 0;
+            width: 250px;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--dark-color);
+            border-left: 3px solid transparent;
+            padding: 10px 15px;
+            margin: 5px 0;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: rgba(58, 134, 255, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: rgba(58, 134, 255, 0.1);
+            border-left: 3px solid var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            padding: 15px 20px;
+            font-weight: 600;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(58, 134, 255, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2a75e8;
+            border-color: #2a75e8;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #e50063;
+            border-color: #e50063;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .avatar-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+        
+        .role-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .role-badge.admin {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .role-badge.staff {
+            background-color: var(--warning-color);
+            color: black;
+        }
+        
+        .role-badge.student {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Flash messages styling */
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+                padding-top: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-building"></i> DMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge bg-danger rounded-pill">3</span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> {{ session.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar d-none d-md-block">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_rooms') }}">
+                    <i class="fas fa-door-open"></i> Rooms
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_complaints') }}">
+                    <i class="fas fa-exclamation-circle"></i> Complaints
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_maintenance') }}">
+                    <i class="fas fa-tools"></i> Maintenance
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_visitors') }}">
+                    <i class="fas fa-user-friends"></i> Visitors
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('view_notices') }}">
+                    <i class="fas fa-bullhorn"></i> Notices
+                </a>
+            </li>
+            {% if session.role == 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('manage_users') }}">
+                    <i class="fas fa-users-cog"></i> User Management
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('manage_users') }}">User Management</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Edit User</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Edit User</h5>
+                            <span class="role-badge {{ user.role }}">{{ user.role|capitalize }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="avatar-container">
+                                <img src="https://ui-avatars.com/api/?name={{ user.full_name }}&background=random" alt="User Avatar" class="avatar">
+                                <h5 class="mt-3">{{ user.username }}</h5>
+                            </div>
+
+                            <form action="{{ url_for('edit_user', user_id=user.id) }}" method="post">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="full_name" class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">Role</label>
+                                    <select class="form-select" id="role" name="role" required>
+                                        <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+                                        <option value="staff" {% if user.role == 'staff' %}selected{% endif %}>Staff</option>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrator</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password (leave blank to keep current)</label>
+                                    <div class="password-container">
+                                        <input type="password" class="form-control" id="new_password" name="new_password">
+                                        <span class="password-toggle" onclick="togglePassword()">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                    <div class="form-text">Password must be at least 8 characters long.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <div class="password-container">
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                        <span class="password-toggle" onclick="toggleConfirmPassword()">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{{ url_for('manage_users') }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i> Back to Users
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                                            <i class="fas fa-trash-alt me-2"></i> Delete User
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i> Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete User Modal -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the user <strong>{{ user.username }}</strong>?</p>
+                    <p class="text-danger"><strong>Warning:</strong> This action cannot be undone. All data associated with this user will be permanently deleted.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger">Delete User</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Password visibility toggle
+        function togglePassword() {
+            const passwordInput = document.getElementById('new_password');
+            const icon = document.querySelector('.password-toggle i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        function toggleConfirmPassword() {
+            const confirmPasswordInput = document.getElementById('confirm_password');
+            const icon = document.querySelectorAll('.password-toggle i')[1];
+            
+            if (confirmPasswordInput.type === 'password') {
+                confirmPasswordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                confirmPasswordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+        
+        // Password validation
+        document.getElementById('confirm_password').addEventListener('input', function() {
+            const password = document.getElementById('new_password').value;
+            const confirmPassword = this.value;
+            
+            if (password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+</body>
+</html>

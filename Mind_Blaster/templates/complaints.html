@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+
+{% block title %}Complaints - Mind Blaster System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Complaints Management</h2>
+        <a href="{{ url_for('new_complaint') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition duration-200">
+            <i class="fas fa-plus mr-2"></i>Submit New Complaint
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-700">Complaint List</h3>
+            
+            <!-- Filter options -->
+            <div class="flex space-x-2">
+                <select id="statusFilter" class="border rounded-md px-3 py-2 text-sm">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search complaints..." class="border rounded-md px-3 py-2 text-sm">
+            </div>
+        </div>
+
+        {% if complaints %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Title</th>
+                            {% if session.role in ['admin', 'staff'] %}
+                                <th class="py-3 px-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Submitted By</th>
+                            {% endif %}
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Date</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Status</th>
+                            <th class="py-3 px-4 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for complaint in complaints %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 text-sm font-medium">{{ complaint.title }}</td>
+                                {% if session.role in ['admin', 'staff'] %}
+                                    <td class="py-3 px-4 text-sm">{{ complaint.user.full_name }}</td>
+                                {% endif %}
+                                <td class="py-3 px-4 text-sm">{{ complaint.submission_date.strftime('%Y-%m-%d') }}</td>
+                                <td class="py-3 px-4 text-sm">
+                                    {% if complaint.status == 'Pending' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    {% elif complaint.status == 'In Progress' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            In Progress
+                                        </span>
+                                    {% elif complaint.status == 'Resolved' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Resolved
+                                        </span>
+                                    {% elif complaint.status == 'Closed' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Closed
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            {{ complaint.status }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center">
+                                        <i class="fas fa-eye mr-1"></i> View Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Simple pagination -->
+            <div class="mt-4 flex justify-between items-center">
+                <p class="text-sm text-gray-600">Showing <span class="font-medium">{{ complaints|length }}</span> complaints</p>
+                <div class="flex space-x-1">
+                    <a href="#" class="px-3 py-1 border rounded text-sm">Previous</a>
+                    <a href="#" class="px-3 py-1 border rounded bg-blue-600 text-white text-sm">1</a>
+                    <a href="#" class="px-3 py-1 border rounded text-sm">2</a>
+                    <a href="#" class="px-3 py-1 border rounded text-sm">3</a>
+                    <a href="#" class="px-3 py-1 border rounded text-sm">Next</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="mt-2 text-lg font-medium text-gray-900">No complaints found</h3>
+                <p class="mt-1 text-gray-500">There are currently no complaints in the system.</p>
+                <div class="mt-6">
+                    <a href="{{ url_for('new_complaint') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        Submit your first complaint
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Status filter functionality
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        filterTable();
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        filterTable();
+    });
+
+    function filterTable() {
+        const statusValue = document.getElementById('statusFilter').value.toLowerCase();
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const titleCell = row.querySelector('td:first-child');
+            const statusCell = row.querySelectorAll('td')[{% if session.role in ['admin', 'staff'] %}3{% else %}2{% endif %}];
+            
+            const statusMatch = !statusValue || statusCell.textContent.trim().toLowerCase().includes(statusValue);
+            const titleMatch = !searchValue || titleCell.textContent.toLowerCase().includes(searchValue);
+            
+            if (statusMatch && titleMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

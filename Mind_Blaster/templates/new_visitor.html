@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Visitor - Dormitory Management System</title>
+</head>
+<body>
+    <header>
+        <h1>Dormitory Management System</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/rooms">Rooms</a></li>
+                <li><a href="/complaints">Complaints</a></li>
+                <li><a href="/maintenance">Maintenance</a></li>
+                <li><a href="/visitors">Visitors</a></li>
+                <li><a href="/notices">Notices</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <h2>Log New Visitor</h2>
+        
+        <form method="POST" action="/visitor/new">
+            <div>
+                <label for="visitor_name">Visitor Name:</label>
+                <input type="text" id="visitor_name" name="visitor_name" required>
+            </div>
+            
+            <div>
+                <label for="purpose">Purpose of Visit:</label>
+                <textarea id="purpose" name="purpose" rows="3" required></textarea>
+            </div>
+            
+            <div>
+                <label for="id_number">ID Number:</label>
+                <input type="text" id="id_number" name="id_number" required>
+                <small>(National ID, Passport, etc.)</small>
+            </div>
+            
+            <div>
+                <label for="phone_number">Phone Number:</label>
+                <input type="tel" id="phone_number" name="phone_number" required>
+            </div>
+            
+            <div>
+                <button type="submit">Log Visitor</button>
+                <a href="/visitors">Cancel</a>
+            </div>
+        </form>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Dormitory Management System</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}View Complaint - Mind Blaster System{% endblock %}
+
+{% block content %}
+    <h2>Complaint Details</h2>
+    
+    <section class="complaint-details">
+        <h3>{{ complaint.title }}</h3>
+        <p><strong>Status:</strong> {{ complaint.status }}</p>
+        <p><strong>Submitted By:</strong> {{ complaint.user.full_name }}</p>
+        <p><strong>Date:</strong> {{ complaint.submission_date.strftime('%Y-%m-%d %H:%M') }}</p>
+        
+        <div>
+            <h4>Description</h4>
+            <p>{{ complaint.description }}</p>
+        </div>
+        
+        {% if complaint.status == 'resolved' and complaint.resolution %}
+            <div>
+                <h4>Resolution</h4>
+                <p><strong>Resolved on:</strong> {{ complaint.resolution_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p>{{ complaint.resolution }}</p>
+            </div>
+        {% endif %}
+    </section>
+    
+    {% if session.role in ['admin', 'staff'] %}
+        <section>
+            <h3>Update Status</h3>
+            <a href="{{ url_for('update_complaint_status', complaint_id=complaint.id, status='open') }}">Mark as Open</a> |
+            <a href="{{ url_for('update_complaint_status', complaint_id=complaint.id, status='in-progress') }}">Mark as In Progress</a> |
+            <a href="{{ url_for('update_complaint_status', complaint_id=complaint.id, status='resolved') }}">Mark as Resolved</a>
+        </section>
+        
+        {% if complaint.status != 'resolved' %}
+            <section>
+                <h3>Resolve Complaint</h3>
+                <form method="POST" action="{{ url_for('resolve_complaint', complaint_id=complaint.id) }}">
+                    <div>
+                        <label for="resolution">Resolution:</label>
+                        <textarea id="resolution" name="resolution" rows="5" required></textarea>
+                    </div>
+                    <div>
+                        <button type="submit">Submit Resolution</button>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+    {% endif %}
+    
+    <p><a href="{{ url_for('view_complaints') }}">Back to Complaints</a></p>
+{% endblock %}

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notices - Mind Blaster System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-indigo-700 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-building mr-3 text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Mind Blaster System</h1>
+                </div>
+                <nav class="md:flex md:items-center">
+                    <ul class="flex flex-wrap gap-1 md:gap-2">
+                        <li><a href="/dashboard" class="px-3 py-2 rounded hover:bg-indigo-600 transition-colors flex items-center"><i class="fas fa-tachometer-alt mr-1"></i> Dashboard</a></li>
+                        <li><a href="/rooms" class="px-3 py-2 rounded hover:bg-indigo-600 transition-colors flex items-center"><i class="fas fa-door-open mr-1"></i> Rooms</a></li>
+                        <li><a href="/complaints" class="px-3 py-2 rounded hover:bg-indigo-600 transition-colors flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Complaints</a></li>
+                        <li><a href="/maintenance" class="px-3 py-2 rounded hover:bg-indigo-600 transition-colors flex items-center"><i class="fas fa-tools mr-1"></i> Maintenance</a></li>
+                       
+                        <li><a href="/notices" class="px-3 py-2 bg-indigo-800 rounded flex items-center"><i class="fas fa-bullhorn mr-1"></i> Notices</a></li>
+                        <li><a href="/logout" class="px-3 py-2 rounded hover:bg-indigo-600 transition-colors flex items-center"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-bullhorn mr-3 text-indigo-600"></i>
+                Notice Board
+            </h2>
+            
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <input type="text" id="searchNotices" placeholder="Search notices..." class="border rounded-md py-2 px-3 pl-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                
+                <select id="filterNotices" class="border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Notices</option>
+                    <option value="active">Active Only</option>
+                    <option value="upcoming">Not Expired</option>
+                </select>
+                
+                {% if session.role in ['admin', 'staff'] %}
+                <a href="/notice/new" class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Post New Notice
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if notices %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="grid grid-cols-1 divide-y" id="noticesList">
+                {% for notice in notices %}
+                <div class="notice-item p-6 hover:bg-gray-50 transition-colors {% if not notice.is_active %}opacity-60{% endif %}" 
+                     data-expiry="{{ notice.expiry_date.strftime('%Y-%m-%d') if notice.expiry_date else 'No Expiry' }}"
+                     data-active="{{ 'true' if notice.is_active else 'false' }}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <div class="flex items-center mb-2">
+                                <h3 class="text-lg font-semibold text-gray-800">{{ notice.title }}</h3>
+                                {% if notice.is_active and (not notice.expiry_date or notice.expiry_date > now) %}
+                                <span class="ml-3 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active</span>
+                                {% elif not notice.is_active %}
+                                <span class="ml-3 px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Inactive</span>
+                                {% else %}
+                                <span class="ml-3 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Expired</span>
+                                {% endif %}
+                                
+                                {% if notice.priority == 'high' %}
+                                <span class="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">High Priority</span>
+                                {% elif notice.priority == 'medium' %}
+                                <span class="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Medium Priority</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-3 text-gray-600 notice-content">
+                                {{ notice.content }}
+                            </div>
+                            
+                            <div class="mt-4 flex items-center text-sm text-gray-500">
+                                <div class="flex items-center mr-4">
+                                    <i class="far fa-calendar mr-1"></i>
+                                    <span>Posted: {{ notice.post_date.strftime('%b %d, %Y') }}</span>
+                                </div>
+                                <div class="flex items-center mr-4">
+                                    <i class="far fa-user mr-1"></i>
+                                    <span>By: {{ notice.author.full_name }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="far fa-clock mr-1"></i>
+                                    <span>Expires: {{ notice.expiry_date.strftime('%b %d, %Y') if notice.expiry_date else 'No Expiry' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if session.role in ['admin', 'staff'] %}
+                        <div class="ml-4 flex flex-col space-y-2">
+                            <a href="/notice/{{ notice.id }}/edit" class="text-blue-500 hover:text-blue-700 transition-colors flex items-center">
+                                <i class="fas fa-edit mr-1"></i> Edit
+                            </a>
+                            <a href="/notice/{{ notice.id }}/toggle" class="{% if notice.is_active %}text-orange-500 hover:text-orange-700{% else %}text-green-500 hover:text-green-700{% endif %} transition-colors flex items-center">
+                                <i class="fas {% if notice.is_active %}fa-toggle-off{% else %}fa-toggle-on{% endif %} mr-1"></i>
+                                {% if notice.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </a>
+                            <button class="text-red-500 hover:text-red-700 transition-colors flex items-center"
+                                    onclick="confirmDelete('{{ notice.id }}', '{{ notice.title }}')">
+                                <i class="fas fa-trash-alt mr-1"></i> Delete
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-bullhorn text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No Notices Available</h3>
+            <p class="text-gray-500">There are currently no notices to display on the board.</p>
+            
+            {% if session.role in ['admin', 'staff'] %}
+            <div class="mt-6">
+                <a href="/notice/new" class="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Post Your First Notice
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h3 class="text-lg font-bold mb-4">Confirm Deletion</h3>
+            <p class="mb-6">Are you sure you want to delete the notice <span id="noticeTitle" class="font-semibold"></span>?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelDelete" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors">Delete</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p>&copy; 2025 Dormitory Management System</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/contact" class="hover:text-indigo-300 transition-colors">Contact</a>
+                    <a href="/help" class="hover:text-indigo-300 transition-colors">Help</a>
+                    <a href="/privacy" class="hover:text-indigo-300 transition-colors">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search and filter functionality
+            const searchInput = document.getElementById('searchNotices');
+            const filterSelect = document.getElementById('filterNotices');
+            const noticeItems = document.querySelectorAll('.notice-item');
+            
+            function filterNotices() {
+                const searchValue = searchInput.value.toLowerCase();
+                const filterValue = filterSelect.value;
+                const currentDate = new Date().toISOString().split('T')[0];
+                
+                noticeItems.forEach(item => {
+                    const title = item.querySelector('h3').textContent.toLowerCase();
+                    const content = item.querySelector('.notice-content').textContent.toLowerCase();
+                    const isActive = item.dataset.active === 'true';
+                    const expiry = item.dataset.expiry;
+                    const notExpired = expiry === 'No Expiry' || expiry >= currentDate;
+                    
+                    const matchesSearch = title.includes(searchValue) || content.includes(searchValue);
+                    let matchesFilter = true;
+                    
+                    if (filterValue === 'active') {
+                        matchesFilter = isActive;
+                    } else if (filterValue === 'upcoming') {
+                        matchesFilter = notExpired;
+                    }
+                    
+                    item.style.display = matchesSearch && matchesFilter ? '' : 'none';
+                });
+            }
+            
+            if (searchInput && filterSelect) {
+                searchInput.addEventListener('input', filterNotices);
+                filterSelect.addEventListener('change', filterNotices);
+            }
+            
+            // Delete confirmation modal
+            window.confirmDelete = function(noticeId, noticeTitle) {
+                const modal = document.getElementById('deleteModal');
+                const titleSpan = document.getElementById('noticeTitle');
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+                const cancelBtn = document.getElementById('cancelDelete');
+                
+                titleSpan.textContent = noticeTitle;
+                confirmBtn.href = `/notice/${noticeId}/delete`;
+                modal.classList.remove('hidden');
+                
+                cancelBtn.addEventListener('click', function() {
+                    modal.classList.add('hidden');
+                });
+            };
+        });
+    </script>
+</body>
+</html>

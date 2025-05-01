@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mind Blaster{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        .sidebar-active {
+            @apply bg-indigo-800 text-white;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen">
+    {% if session.user_id %}
+    <div class="flex">
+        <!-- Sidebar Navigation -->
+        <aside class="bg-indigo-900 text-white w-64 min-h-screen flex flex-col">
+            <div class="p-4 border-b border-indigo-800">
+                <h2 class="text-2xl font-bold">Dorm Manager</h2>
+            </div>
+            
+            <nav class="flex-1 px-2 py-4 space-y-1">
+                <a href="{{ url_for('dashboard') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('dashboard') %}sidebar-active{% endif %}">
+                    <i class="fas fa-chart-line mr-3"></i> Dashboard
+                </a>
+                
+                <a href="{{ url_for('view_rooms') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('view_rooms') %}sidebar-active{% endif %}">
+                    <i class="fas fa-bed mr-3"></i> Rooms
+                </a>
+                
+                <a href="{{ url_for('view_complaints') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('view_complaints') %}sidebar-active{% endif %}">
+                    <i class="fas fa-comment-alt mr-3"></i> Complaints
+                </a>
+                
+                <a href="{{ url_for('view_maintenance') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('view_maintenance') %}sidebar-active{% endif %}">
+                    <i class="fas fa-tools mr-3"></i> Maintenance
+                </a>
+                
+                <a href="{{ url_for('view_visitors') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('view_visitors') %}sidebar-active{% endif %}">
+                    <i class="fas fa-user-friends mr-3"></i> Visitors
+                </a>
+                
+                <a href="{{ url_for('view_notices') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('view_notices') %}sidebar-active{% endif %}">
+                    <i class="fas fa-bullhorn mr-3"></i> Notices
+                </a>
+                
+                {% if session.role == 'admin' %}
+                <a href="{{ url_for('manage_users') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('manage_users') %}sidebar-active{% endif %}">
+                    <i class="fas fa-users-cog mr-3"></i> Users
+                </a>
+                
+                <a href="{{ url_for('manage_room_requests') }}" class="flex items-center px-4 py-2 rounded-md hover:bg-indigo-800 {% if request.path == url_for('manage_room_requests') %}sidebar-active{% endif %}">
+                    <i class="fas fa-clipboard-list mr-3"></i> Room Requests
+                </a>
+                {% endif %}
+            </nav>
+            
+            <div class="p-4 border-t border-indigo-800">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <span class="inline-flex rounded-full h-10 w-10 bg-gray-400 items-center justify-center">
+                            <span class="text-lg font-medium leading-none text-white">{{ session.username[0] | upper }}</span>
+                        </span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-white">{{ session.username }}</p>
+                        <p class="text-xs text-indigo-300">{{ session.role | title }}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('logout') }}" class="flex items-center text-indigo-300 hover:text-white transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">{% block header %}Dashboard{% endblock %}</h1>
+                    <div class="flex space-x-4">
+                        <span class="text-sm text-gray-500">Last Login: Today</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    {% for category, message in messages %}
+                        {% set alert_color = {
+                            'success': 'bg-green-100 text-green-800 border-green-200',
+                            'info': 'bg-blue-100 text-blue-800 border-blue-200',
+                            'warning': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                            'danger': 'bg-red-100 text-red-800 border-red-200'
+                        } %}
+                        <div class="{{ alert_color[category] }} border px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ message }}</span>
+                            <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <span class="sr-only">Close</span>
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Page Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+        <!-- Login/Register Pages -->
+        <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-100">
+            <!-- Flash Messages for Login/Register -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="max-w-md w-full mx-auto mb-4">
+                    {% for category, message in messages %}
+                        {% set alert_color = {
+                            'success': 'bg-green-100 text-green-800 border-green-200',
+                            'info': 'bg-blue-100 text-blue-800 border-blue-200',
+                            'warning': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                            'danger': 'bg-red-100 text-red-800 border-red-200'
+                        } %}
+                        <div class="{{ alert_color[category] }} border px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ message }}</span>
+                            <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <span class="sr-only">Close</span>
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% block auth_content %}{% endblock %}
+        </div>
+    {% endif %}
+
+    {% block scripts %}
+    <script>
+        // Common JavaScript functions can go here
+    </script>
+    {% endblock %}
+</body>
+</html>

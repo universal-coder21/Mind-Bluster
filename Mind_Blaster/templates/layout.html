@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Mind Blaster System{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50">
+  <header class="bg-blue-800 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Mind Blaster System</h1>
+        
+        {% if session.user_id %}
+          <!-- Mobile menu button -->
+          <div class="md:hidden">
+            <button id="menuToggle" class="text-white focus:outline-none">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Desktop navigation -->
+          <nav class="hidden md:block">
+            <ul class="flex space-x-6">
+              <li><a href="{{ url_for('dashboard') }}" class="hover:text-blue-200">Dashboard</a></li>
+              <li><a href="{{ url_for('view_rooms') }}" class="hover:text-blue-200">Rooms</a></li>
+              <li><a href="{{ url_for('view_complaints') }}" class="hover:text-blue-200">Complaints</a></li>
+              <li><a href="{{ url_for('view_maintenance') }}" class="hover:text-blue-200">Maintenance</a></li>
+             
+              <li><a href="{{ url_for('view_notices') }}" class="hover:text-blue-200">Notice Board</a></li>
+              {% if session.role in ['admin', 'staff'] %}
+                <li><a href="{{ url_for('manage_room_requests') }}" class="hover:text-blue-200">Room Requests</a></li>
+              {% endif %}
+              {% if session.role == 'admin' %}
+                <li><a href="{{ url_for('manage_users') }}" class="hover:text-blue-200">User Management</a></li>
+              {% endif %}
+              <li><a href="{{ url_for('logout') }}" class="hover:text-blue-200">Logout ({{ session.username }})</a></li>
+            </ul>
+          </nav>
+        {% endif %}
+      </div>
+      
+      <!-- Mobile navigation -->
+      {% if session.user_id %}
+        <nav id="mobileMenu" class="hidden mt-4 md:hidden pb-2">
+          <ul class="space-y-2">
+            <li><a href="{{ url_for('dashboard') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Dashboard</a></li>
+            <li><a href="{{ url_for('view_rooms') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Rooms</a></li>
+            <li><a href="{{ url_for('view_complaints') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Complaints</a></li>
+            <li><a href="{{ url_for('view_maintenance') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Maintenance</a></li>
+            <li><a href="{{ url_for('view_visitors') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Visitors</a></li>
+            <li><a href="{{ url_for('view_notices') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Notice Board</a></li>
+            {% if session.role in ['admin', 'staff'] %}
+              <li><a href="{{ url_for('manage_room_requests') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Room Requests</a></li>
+            {% endif %}
+            {% if session.role == 'admin' %}
+              <li><a href="{{ url_for('manage_users') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">User Management</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('logout') }}" class="block hover:bg-blue-700 px-2 py-1 rounded">Logout ({{ session.username }})</a></li>
+          </ul>
+        </nav>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-3 rounded-md {% if category == 'error' %}bg-red-100 text-red-700 border border-red-300{% elif category == 'success' %}bg-green-100 text-green-700 border border-green-300{% elif category == 'warning' %}bg-yellow-100 text-yellow-700 border border-yellow-300{% else %}bg-blue-100 text-blue-700 border border-blue-300{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="bg-gray-100 border-t border-gray-200 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600">
+      <p>&copy; 2025 Dormitory Management System</p>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('menuToggle').addEventListener('click', function() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      mobileMenu.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

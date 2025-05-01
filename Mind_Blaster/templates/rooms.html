@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Blaster Rooms | Mind Blaster System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('dashboard') }}" class="text-2xl font-bold">DormManager</a>
+                <div class="hidden md:flex space-x-4">
+                    <a href="{{ url_for('dashboard') }}" class="hover:text-indigo-200">Dashboard</a>
+                    <a href="{{ url_for('view_rooms') }}" class="hover:text-indigo-200 border-b-2 border-white">Rooms</a>
+                    <a href="{{ url_for('view_complaints') }}" class="hover:text-indigo-200">Complaints</a>
+                    <a href="{{ url_for('view_maintenance') }}" class="hover:text-indigo-200">Maintenance</a>
+                    <a href="{{ url_for('view_visitors') }}" class="hover:text-indigo-200">Visitors</a>
+                    <a href="{{ url_for('view_notices') }}" class="hover:text-indigo-200">Notices</a>
+                    {% if session.role == 'admin' %}
+                    <a href="{{ url_for('manage_users') }}" class="hover:text-indigo-200">Users</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="hidden md:inline">Welcome, {{ session.username }}</span>
+                <a href="{{ url_for('logout') }}" class="bg-white text-indigo-600 px-4 py-1 rounded-lg hover:bg-indigo-100">Logout</a>
+                <button class="md:hidden text-white" id="mobile-menu-button">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div class="md:hidden hidden bg-indigo-700" id="mobile-menu">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-2">
+                <a href="{{ url_for('dashboard') }}" class="block py-2 hover:bg-indigo-600 px-2 rounded">Dashboard</a>
+                <a href="{{ url_for('view_rooms') }}" class="block py-2 bg-indigo-600 px-2 rounded">Rooms</a>
+                <a href="{{ url_for('view_complaints') }}" class="block py-2 hover:bg-indigo-600 px-2 rounded">Complaints</a>
+                <a href="{{ url_for('view_maintenance') }}" class="block py-2 hover:bg-indigo-600 px-2 rounded">Maintenance</a>
+                <a href="{{ url_for('view_visitors') }}" class="block py-2 hover:bg-indigo-600 px-2 rounded">Visitors</a>
+                <a href="{{ url_for('view_notices') }}" class="block py-2 hover:bg-indigo-600 px-2 rounded">Notices</a>
+                {% if session.role == 'admin' %}
+                <a href="{{ url_for('manage_users') }}" class="block py-2 hover:bg-indigo-600 px-2 rounded">Users</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container mx-auto px-4 pt-4">
+        {% for category, message in messages %}
+        <div class="{% if category == 'success' %}bg-green-100 border-green-500 text-green-700{% elif category == 'danger' %}bg-red-100 border-red-500 text-red-700{% elif category == 'warning' %}bg-yellow-100 border-yellow-500 text-yellow-700{% else %}bg-blue-100 border-blue-500 text-blue-700{% endif %} border-l-4 p-4 mb-4 rounded shadow">
+            <div class="flex items-center">
+                <div class="py-1">
+                    <i class="{% if category == 'success' %}fas fa-check-circle{% elif category == 'danger' %}fas fa-exclamation-circle{% elif category == 'warning' %}fas fa-exclamation-triangle{% else %}fas fa-info-circle{% endif %} mr-2"></i>
+                </div>
+                <div>
+                    <p>{{ message }}</p>
+                </div>
+                <button class="ml-auto close-flash">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Dormitory Rooms</h1>
+            <div class="flex space-x-2">
+                {% if session.role == 'admin' %}
+                <a href="{{ url_for('add_room') }}" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition flex items-center">
+                    <i class="fas fa-plus mr-2"></i> Add New Room
+                </a>
+                {% endif %}
+                <div class="relative">
+                    <input type="text" id="room-search" placeholder="Search rooms..." class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="fas fa-door-open text-blue-500 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600">Total Rooms</h2>
+                        <p class="text-2xl font-semibold" id="total-rooms">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600">Available Rooms</h2>
+                        <p class="text-2xl font-semibold" id="available-rooms">Loading...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="fas fa-users text-red-500 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-gray-600">Occupied Rooms</h2>
+                        <p class="text-2xl font-semibold" id="occupied-rooms">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Room Filter Options -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="building-filter" class="block text-sm font-medium text-gray-700 mb-1">Building</label>
+                    <select id="building-filter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Buildings</option>
+                        <!-- Dynamically filled with JavaScript -->
+                    </select>
+                </div>
+                <div>
+                    <label for="floor-filter" class="block text-sm font-medium text-gray-700 mb-1">Floor</label>
+                    <select id="floor-filter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All Floors</option>
+                        <!-- Dynamically filled with JavaScript -->
+                    </select>
+                </div>
+                <div>
+                    <label for="availability-filter" class="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+                    <select id="availability-filter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">All</option>
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="capacity-filter" class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+                    <select id="capacity-filter" class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Any</option>
+                        <option value="1">1 Person</option>
+                        <option value="2">2 People</option>
+                        <option value="3">3 People</option>
+                        <option value="4+">4+ People</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rooms Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="rooms-container">
+            {% for room in rooms %}
+            <div class="room-card bg-white rounded-lg shadow overflow-hidden" 
+                 data-room-number="{{ room.room_number }}"
+                 data-building="{{ room.building }}"
+                 data-floor="{{ room.floor }}"
+                 data-capacity="{{ room.capacity }}"
+                 data-available="{{ room.is_available }}">
+                <div class="{% if room.is_available %}bg-green-500{% else %}bg-red-500{% endif %} text-white px-4 py-2 flex justify-between items-center">
+                    <h3 class="font-bold">Room {{ room.room_number }}</h3>
+                    <span class="text-sm bg-white {% if room.is_available %}text-green-500{% else %}text-red-500{% endif %} px-2 py-1 rounded">
+                        {% if room.is_available %}Available{% else %}Occupied{% endif %}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <span class="text-gray-600 block"><i class="fas fa-building mr-2"></i>{{ room.building }}</span>
+                            <span class="text-gray-600 block"><i class="fas fa-stairs mr-2"></i>Floor {{ room.floor }}</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-2xl font-bold text-gray-800">{{ room.capacity }}</span>
+                            <span class="text-sm text-gray-600">Capacity</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Occupants Count -->
+                    <div class="mt-3 mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Occupancy</span>
+                            <span>{{ room.occupants|length }}/{{ room.capacity }}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: {{ (room.occupants|length / room.capacity) * 100 }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2 mt-4">
+                        {% if session.role == 'student' and room.is_available %}
+                        <a href="{{ url_for('request_room', room_id=room.id) }}" class="bg-indigo-500 text-white text-center px-3 py-2 rounded hover:bg-indigo-600 transition flex-1">
+                            Request Room
+                        </a>
+                        {% elif session.role == 'admin' %}
+                        <button class="view-occupants bg-blue-500 text-white text-center px-3 py-2 rounded hover:bg-blue-600 transition flex-1" data-room-id="{{ room.id }}">
+                            View Occupants
+                        </button>
+                        <button class="edit-room bg-yellow-500 text-white text-center px-3 py-2 rounded hover:bg-yellow-600 transition flex-1" data-room-id="{{ room.id }}">
+                            Edit
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- No Results Message -->
+        <div id="no-results" class="hidden text-center py-10">
+            <i class="fas fa-search text-gray-400 text-5xl mb-4"></i>
+            <h3 class="text-2xl font-semibold text-gray-600">No rooms found</h3>
+            <p class="text-gray-500">Try adjusting your search or filters</p>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-8 flex justify-center">
+            <nav class="inline-flex rounded-md shadow">
+                <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 rounded-l-md">Previous</a>
+                <a href="#" class="px-4 py-2 border-t border-b border-gray-300 bg-indigo-500 text-white">1</a>
+                <a href="#" class="px-4 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">2</a>
+                <a href="#" class="px-4 py-2 border-t border-b border-gray-300 bg-white text-gray-700 hover:bg-gray-50">3</a>
+                <a href="#" class="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 rounded-r-md">Next</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Room Occupants Modal -->
+    <div id="occupants-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-4">
+            <div class="flex justify-between items-center border-b px-6 py-4">
+                <h3 class="text-xl font-bold" id="modal-room-title">Room Occupants</h3>
+                <button id="close-occupants-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="occupants-list" class="space-y-4">
+                    <!-- Will be filled dynamically -->
+                </div>
+                <div class="mt-6 text-center" id="no-occupants">
+                    <p class="text-gray-500">No occupants in this room</p>
+                </div>
+            </div>
+            <div class="bg-gray-100 px-6 py-4 flex justify-end rounded-b-lg">
+                <button id="close-modal-btn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-10 py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h2 class="text-2xl font-bold">DormManager</h2>
+                    <p class="text-gray-400">Simplifying dormitory management</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-indigo-300"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="hover:text-indigo-300"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="hover:text-indigo-300"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="hover:text-indigo-300"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400">
+                <p>&copy; 2025 DormManager. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Close flash messages
+        document.querySelectorAll('.close-flash').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('div.border-l-4').remove();
+            });
+        });
+
+        // Fetch room status from API
+        fetch('{{ url_for("room_status") }}')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-rooms').textContent = data.total;
+                document.getElementById('available-rooms').textContent = data.available;
+                document.getElementById('occupied-rooms').textContent = data.occupied;
+            })
+            .catch(error => {
+                console.error('Error fetching room status:', error);
+                document.getElementById('total-rooms').textContent = 'Error';
+                document.getElementById('available-rooms').textContent = 'Error';
+                document.getElementById('occupied-rooms').textContent = 'Error';
+            });
+
+        // Populate building and floor filters from room data
+        document.addEventListener('DOMContentLoaded', function() {
+            const buildings = new Set();
+            const floors = new Set();
+            
+            document.querySelectorAll('.room-card').forEach(room => {
+                buildings.add(room.dataset.building);
+                floors.add(room.dataset.floor);
+            });
+            
+            const buildingFilter = document.getElementById('building-filter');
+            const floorFilter = document.getElementById('floor-filter');
+            
+            // Sort buildings and floors
+            [...buildings].sort().forEach(building => {
+                const option = document.createElement('option');
+                option.value = building;
+                option.textContent = building;
+                buildingFilter.appendChild(option);
+            });
+            
+            [...floors].sort((a, b) => a - b).forEach(floor => {
+                const option = document.createElement('option');
+                option.value = floor;
+                option.textContent = Floor ${floor};
+                floorFilter.appendChild(option);
+            });
+        });
+
+        // Room filtering logic
+        function filterRooms() {
+            const searchTerm = document.getElementById('room-search').value.toLowerCase();
+            const building = document.getElementById('building-filter').value;
+            const floor = document.getElementById('floor-filter').value;
+            const availability = document.getElementById('availability-filter').value;
+            const capacity = document.getElementById('capacity-filter').value;
+            
+            let visibleCount = 0;
+            
+            document.querySelectorAll('.room-card').forEach(room => {
+                const roomNumber = room.dataset.roomNumber.toLowerCase();
+                const roomBuilding = room.dataset.building;
+                const roomFloor = room.dataset.floor;
+                const roomAvailable = room.dataset.available === 'True' ? 'available' : 'occupied';
+                const roomCapacity = parseInt(room.dataset.capacity);
+                
+                let isVisible = roomNumber.includes(searchTerm);
+                
+                if (building && roomBuilding !== building) isVisible = false;
+                if (floor && roomFloor !== floor) isVisible = false;
+                if (availability && roomAvailable !== availability) isVisible = false;
+                
+                if (capacity) {
+                    if (capacity === '4+' && roomCapacity < 4) isVisible = false;
+                    else if (capacity !== '4+' && roomCapacity != capacity) isVisible = false;
+                }
+                
+                room.classList.toggle('hidden', !isVisible);
+                if (isVisible) visibleCount++;
+            });
+            
+            // Show/hide no results message
+            document.getElementById('no-results').classList.toggle('hidden', visibleCount > 0);
+        }
+        
+        // Add event listeners for filter changes
+        document.getElementById('room-search').addEventListener('input', filterRooms);
+        document.getElementById('building-filter').addEventListener('change', filterRooms);
+        document.getElementById('floor-filter').addEventListener('change', filterRooms);
+        document.getElementById('availability-filter').addEventListener('change', filterRooms);
+        document.getElementById('capacity-filter').addEventListener('change', filterRooms);
+
+        // Mock data for occupants modal - in a real application, this would be fetched from the server
+        // This is just for demonstration purposes
+        const mockOccupants = {
+            1: [
+                { name: "John Doe", email: "john.doe@example.com", id: 101 },
+                { name: "Jane Smith", email: "jane.smith@example.com", id: 102 }
+            ],
+            2: [
+                { name: "Robert Johnson", email: "robert.j@example.com", id: 103 }
+            ],
+            3: []
+        };
+
+        // Occupants modal functionality
+        const occupantsModal = document.getElementById('occupants-modal');
+        const closeModalButtons = document.querySelectorAll('#close-occupants-modal, #close-modal-btn');
+        const occupantsList = document.getElementById('occupants-list');
+        const noOccupantsMsg = document.getElementById('no-occupants');
+        
+        document.querySelectorAll('.view-occupants').forEach(button => {
+            button.addEventListener('click', function() {
+                const roomId = this.dataset.roomId;
+                const roomNumber = this.closest('.room-card').querySelector('h3').textContent;
+                
+                document.getElementById('modal-room-title').textContent = ${roomNumber} Occupants;
+                
+                // Clear previous occupants
+                occupantsList.innerHTML = '';
+                
+                // Get occupants (mock data for demonstration)
+                const occupants = mockOccupants[roomId] || [];
+                
+                if (occupants.length > 0) {
+                    occupants.forEach(occupant => {
+                        const occupantEl = document.createElement('div');
+                        occupantEl.className = 'bg-gray-50 p-4 rounded flex items-center justify-between';
+                        occupantEl.innerHTML = `
+                            <div>
+                                <h4 class="font-semibold">${occupant.name}</h4>
+                                <p class="text-gray-600 text-sm">${occupant.email}</p>
+                            </div>
+                            <a href="#" class="text-blue-500 hover:underline">View Profile</a>
+                        `;
+                        occupantsList.appendChild(occupantEl);
+                    });
+                    
+                    occupantsList.classList.remove('hidden');
+                    noOccupantsMsg.classList.add('hidden');
+                } else {
+                    occupantsList.classList.add('hidden');
+                    noOccupantsMsg.classList.remove('hidden');
+                }
+                
+                occupantsModal.classList.remove('hidden');
+            });
+        });
+        
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                occupantsModal.classList.add('hidden');
+            });
+        });
+        
+        // Close modal on outside click
+        window.addEventListener('click', function(event) {
+            if (event.target === occupantsModal) {
+                occupantsModal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

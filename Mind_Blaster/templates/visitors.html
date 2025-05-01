@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitors - Dormitory Management System</title>
+</head>
+<body>
+    <header>
+        <h1>Dormitory Management System</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/rooms">Rooms</a></li>
+                <li><a href="/complaints">Complaints</a></li>
+                <li><a href="/maintenance">Maintenance</a></li>
+                <li><a href="/visitors">Visitors</a></li>
+                <li><a href="/notices">Notices</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <h2>Visitor Management</h2>
+        
+        <div>
+            <a href="/visitor/new">Log New Visitor</a>
+        </div>
+        
+        <div>
+            <h3>Active Visitors</h3>
+            {% set active_visitors = [] %}
+            {% for visitor in visitors if visitor.check_out is none %}
+                {% do active_visitors.append(visitor) %}
+            {% endfor %}
+            
+            {% if active_visitors %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Visitor Name</th>
+                        <th>Host</th>
+                        <th>Purpose</th>
+                        <th>Check In Time</th>
+                        <th>ID Number</th>
+                        <th>Phone Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visitor in active_visitors %}
+                    <tr>
+                        <td>{{ visitor.visitor_name }}</td>
+                        <td>{{ visitor.host.full_name }}</td>
+                        <td>{{ visitor.purpose }}</td>
+                        <td>{{ visitor.check_in.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ visitor.id_number }}</td>
+                        <td>{{ visitor.phone_number }}</td>
+                        <td>
+                            {% if session.role in ['admin', 'staff'] or session.user_id == visitor.host_id %}
+                            <a href="/visitor/{{ visitor.id }}/checkout">Check Out</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No active visitors.</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <h3>Visitor History</h3>
+            {% set past_visitors = [] %}
+            {% for visitor in visitors if visitor.check_out is not none %}
+                {% do past_visitors.append(visitor) %}
+            {% endfor %}
+            
+            {% if past_visitors %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Visitor Name</th>
+                        <th>Host</th>
+                        <th>Purpose</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visitor in past_visitors %}
+                    <tr>
+                        <td>{{ visitor.visitor_name }}</td>
+                        <td>{{ visitor.host.full_name }}</td>
+                        <td>{{ visitor.purpose }}</td>
+                        <td>{{ visitor.check_in.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ visitor.check_out.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ (visitor.check_out - visitor.check_in).total_seconds() // 60 }} minutes</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No visitor history available.</p>
+            {% endif %}
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Dormitory Management System</p>
+    </footer>
+</body>
+</html>
